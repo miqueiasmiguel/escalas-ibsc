@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Member {
+  id   String @id @default(uuid())
+  name String
+
+  scaleAssociations ScaleMember[]
+
+  @@map("members")
+}
+
+model ScaleEntry {
+  id      String   @id @default(uuid())
+  date    String
+  service String
+
+  members ScaleMember[]
+
+  @@map("scales")
+}
+
+model ScaleMember {
+  id String @id @default(uuid())
+
+  scaleId String
+  scale   ScaleEntry @relation(fields: [scaleId], references: [id], onDelete: Cascade)
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Restrict)
+
+  instrument String
+
+  @@map("scale_members")
+}

@@ -460,7 +460,7 @@ export default function AdminDashboard() {
                               <Badge
                                 variant={
                                   scale.service === "Manhã"
-                                    ? "accent"
+                                    ? "secondary"
                                     : "default"
                                 }
                                 className="text-[10px] uppercase font-bold"

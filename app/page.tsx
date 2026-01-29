@@ -186,7 +186,9 @@ export default function ScalePage() {
                       </span>
                     </CardTitle>
                     <Badge
-                      variant={scale.service === "Manhã" ? "accent" : "default"}
+                      variant={
+                        scale.service === "Manhã" ? "secondary" : "default"
+                      }
                       className="font-semibold uppercase tracking-wider"
                     >
                       {scale.service}

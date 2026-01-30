@@ -199,7 +199,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           <p className="text-muted-foreground animate-pulse">
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8">
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
@@ -452,7 +452,7 @@ export default function AdminDashboard() {
                     <CardContent className="p-4">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="rounded-full bg-primary/10 p-2 text-primary">
+                          <div className="rounded-full p-2">
                             <CalendarIcon className="h-5 w-5" />
                           </div>
                           <div>

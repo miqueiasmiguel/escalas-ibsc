@@ -35,6 +35,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { exportScalesToPDF } from "@/lib/utils/pdf-export";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function ScalePage() {
   const [scales, setScales] = useState<ScaleEntry[]>([]);
@@ -130,42 +132,48 @@ export default function ScalePage() {
         {/* Filters */}
         <div className="grid grid-cols-1 gap-4 rounded-xl border bg-card p-4 shadow-sm md:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4 text-primary" />
+            <Label>
+              <CalendarIcon className="h-4 w-4" />
               Mês/Ano
-            </label>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {months.map((m) => (
-                <option key={m} value={m}>
-                  {format(parseISO(`${m}-01`), "MMMM 'de' yyyy", {
-                    locale: ptBR,
-                  })}
-                </option>
-              ))}
-            </select>
+            </Label>
+            <Select 
+              defaultValue={selectedMonth}
+              onValueChange={(value) => setSelectedMonth(value)}>
+              <SelectTrigger className="flex w-full">
+                <SelectValue placeholder="Selecione um mês/ano" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {format(parseISO(`${m}-01`), "MMMM 'de' yyyy", {
+                      locale: ptBR,
+                    })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
+            <Label>
+              <Users className="h-4 w-4" />
               Integrante
-            </label>
-            <select
-              value={selectedMember}
-              onChange={(e) => setSelectedMember(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="all">Todos os integrantes</option>
-              {membersList.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+            </Label>
+            <Select 
+              defaultValue={selectedMember}
+              onValueChange={(value) => setSelectedMember(value)}>
+              <SelectTrigger className="flex w-full">
+                <SelectValue placeholder="Selecione um integrante" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os integrantes</SelectItem>
+                {membersList.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -225,12 +233,12 @@ export default function ScalePage() {
                           })}
                         </div>
                         <div className="flex flex-wrap items-center gap-x-1.5 text-sm">
-                          <span className="font-semibold uppercase text-muted-foreground min-w-[80px]">
+                          <span className="font-semibold uppercase text-muted-foreground min-w-20">
                             {instrument}:
                           </span>
                           <span className="text-foreground">
                             {members.map((m, i) => (
-                              <React.Fragment key={m.id}>
+                              <React.Fragment key={m.id + "." + i}>
                                 <span
                                   className={cn(
                                     m.id === selectedMember &&

@@ -75,6 +75,9 @@ export class PrismaScaleRepository implements IScaleRepository {
           },
         },
       },
+      orderBy: {
+        date: "desc",
+      }
     });
 
     return scales.map(this.mapToDomain);

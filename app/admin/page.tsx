@@ -17,19 +17,6 @@ import {
   Piano,
 } from "lucide-react";
 
-const getInstrumentIcon = (instrument: string) => {
-  const name = instrument.toLowerCase();
-  if (name.includes("voz") || name.includes("ministro")) return MicVocal;
-  if (
-    name.includes("guitarra") ||
-    name.includes("violão") ||
-    name.includes("baixo")
-  )
-    return Guitar;
-  if (name.includes("teclado") || name.includes("piano")) return Piano;
-  if (name.includes("bateria")) return Drum;
-  return Music;
-};
 import {
   getMembers,
   addMember as apiAddMember,
@@ -71,6 +58,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const INSTRUMENTS: Instrument[] = [
   "Ministro",
@@ -81,6 +69,20 @@ const INSTRUMENTS: Instrument[] = [
   "Teclado",
   "Bateria",
 ];
+
+const getInstrumentIcon = (instrument: string) => {
+  const name = instrument.toLowerCase();
+  if (name.includes("voz") || name.includes("ministro")) return MicVocal;
+  if (
+    name.includes("guitarra") ||
+    name.includes("violão") ||
+    name.includes("baixo")
+  )
+    return Guitar;
+  if (name.includes("teclado") || name.includes("piano")) return Piano;
+  if (name.includes("bateria")) return Drum;
+  return Music;
+};
 
 export default function AdminDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -234,7 +236,7 @@ export default function AdminDashboard() {
           onValueChange={setActiveTab}
           className="space-y-4"
         >
-          <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+          <TabsList className="grid w-full max-w-100 grid-cols-2">
             <TabsTrigger value="scales" className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
               Escalas
@@ -285,21 +287,23 @@ export default function AdminDashboard() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="service">Culto</Label>
-                        <select
-                          id="service"
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                          value={editingScale.service}
-                          onChange={(e) =>
+                        <Select 
+                          defaultValue={editingScale.service}
+                          onValueChange={(value) =>
                             setEditingScale({
                               ...editingScale,
-                              service: e.target.value as ServiceType,
-                            })
-                          }
+                              service: value as ServiceType,
+                            })}
                         >
-                          <option value="Manhã">Manhã</option>
-                          <option value="Noite">Noite</option>
-                          <option value="Especial">Especial</option>
-                        </select>
+                          <SelectTrigger className="flex w-full">
+                            <SelectValue placeholder="Selecione um mês/ano" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Manhã">Manhã</SelectItem>
+                            <SelectItem value="Noite">Noite</SelectItem>
+                            <SelectItem value="Especial">Especial</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -327,7 +331,7 @@ export default function AdminDashboard() {
                         </Button>
                       </div>
 
-                      <div className="max-h-[300px] space-y-3 overflow-y-auto pr-2">
+                      <div className="max-h-75 space-y-3 overflow-y-auto pr-2">
                         {(editingScale.members || []).map((sm, index) => (
                           <div
                             key={index}
@@ -443,7 +447,6 @@ export default function AdminDashboard() {
 
             <div className="grid gap-4">
               {scales
-                .sort((a, b) => a.date.localeCompare(b.date))
                 .map((scale) => (
                   <Card key={scale.id}>
                     <CardContent className="p-4">

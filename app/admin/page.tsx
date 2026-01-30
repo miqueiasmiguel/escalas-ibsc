@@ -449,12 +449,10 @@ export default function AdminDashboard() {
               {scales
                 .map((scale) => (
                   <Card key={scale.id}>
-                    <CardContent className="p-4">
+                    <CardContent>
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="rounded-full p-2">
-                            <CalendarIcon className="h-5 w-5" />
-                          </div>
+                          <CalendarIcon className="h-5 w-5" />
                           <div>
                             <div className="font-semibold flex items-center gap-2">
                               {format(parseISO(scale.date), "dd/MM/yyyy", {
@@ -489,7 +487,7 @@ export default function AdminDashboard() {
                                 getInstrumentIcon(sm.instrument),
                                 {
                                   className:
-                                    "h-2.5 w-2.5 text-muted-foreground",
+                                    "h-2 w-2 text-muted-foreground",
                                 },
                               )}
                               {sm.member.name}

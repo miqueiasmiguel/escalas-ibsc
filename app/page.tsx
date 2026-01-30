@@ -182,7 +182,7 @@ export default function ScalePage() {
           {filteredScales.length > 0 ? (
             filteredScales.map((scale) => (
               <Card key={scale.id} className="overflow-hidden">
-                <CardHeader className="pb-3">
+                <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">
                       {format(parseISO(scale.date), "dd/MM/yyyy", {
@@ -203,8 +203,8 @@ export default function ScalePage() {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
+                <CardContent>
+                  <div>
                     {Object.entries(
                       scale.members.reduce(
                         (acc, sm) => {
@@ -221,7 +221,7 @@ export default function ScalePage() {
                       <div
                         key={idx}
                         className={cn(
-                          "flex items-start gap-3 rounded-lg p-2 transition-colors",
+                          "flex items-center gap-3 rounded-lg p-2 transition-colors",
                           members.some((m) => m.id === selectedMember)
                             ? "bg-primary/5"
                             : "hover:bg-muted/50",

@@ -5,7 +5,7 @@ export type Instrument =
   | "Baixo"
   | "Teclado"
   | "Bateria"
-  | "Percussão"
+  | "Cajon"
   | "Ministro";
 
 export interface Member {

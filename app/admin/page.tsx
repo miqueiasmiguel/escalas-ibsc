@@ -10,11 +10,6 @@ import {
   Edit2,
   ChevronLeft,
   Calendar as CalendarIcon,
-  Music,
-  MicVocal,
-  Guitar,
-  Drum,
-  Piano,
   AlertTriangle,
 } from "lucide-react";
 
@@ -71,30 +66,17 @@ import {
   ScaleAlertIcon,
   ScaleAlertPanel,
 } from "@/components/scale-alert-badge";
+import { getInstrumentIcon } from "@/lib/utils/instruments";
 
 const INSTRUMENTS: Instrument[] = [
-  "Ministro",
   "Voz",
   "Violão",
   "Guitarra",
   "Baixo",
   "Teclado",
   "Bateria",
+  "Cajon",
 ];
-
-const getInstrumentIcon = (instrument: string) => {
-  const name = instrument.toLowerCase();
-  if (name.includes("voz") || name.includes("ministro")) return MicVocal;
-  if (
-    name.includes("guitarra") ||
-    name.includes("violão") ||
-    name.includes("baixo")
-  )
-    return Guitar;
-  if (name.includes("teclado") || name.includes("piano")) return Piano;
-  if (name.includes("bateria")) return Drum;
-  return Music;
-};
 
 export default function AdminDashboard() {
   const [members, setMembers] = useState<Member[]>([]);

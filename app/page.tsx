@@ -7,27 +7,9 @@ import {
   Filter,
   Calendar as CalendarIcon,
   Users,
-  Music,
-  MicVocal,
-  Guitar,
-  Drum,
-  Piano,
   FileDown,
 } from "lucide-react";
 
-const getInstrumentIcon = (instrument: string) => {
-  const name = instrument.toLowerCase();
-  if (name.includes("voz") || name.includes("ministro")) return MicVocal;
-  if (
-    name.includes("guitarra") ||
-    name.includes("violão") ||
-    name.includes("baixo")
-  )
-    return Guitar;
-  if (name.includes("teclado") || name.includes("piano")) return Piano;
-  if (name.includes("bateria")) return Drum;
-  return Music;
-};
 import { getMembers } from "@/lib/actions/members";
 import { getScales } from "@/lib/actions/scales";
 import { ScaleEntry, Member } from "@/lib/domain/types";
@@ -35,8 +17,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { exportScalesToPDF } from "@/lib/utils/pdf-export";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { getInstrumentIcon } from "@/lib/utils/instruments";
 
 export default function ScalePage() {
   const [scales, setScales] = useState<ScaleEntry[]>([]);
@@ -136,9 +125,10 @@ export default function ScalePage() {
               <CalendarIcon className="h-4 w-4" />
               Mês/Ano
             </Label>
-            <Select 
+            <Select
               defaultValue={selectedMonth}
-              onValueChange={(value) => setSelectedMonth(value)}>
+              onValueChange={(value) => setSelectedMonth(value)}
+            >
               <SelectTrigger className="flex w-full">
                 <SelectValue placeholder="Selecione um mês/ano" />
               </SelectTrigger>
@@ -159,9 +149,10 @@ export default function ScalePage() {
               <Users className="h-4 w-4" />
               Integrante
             </Label>
-            <Select 
+            <Select
               defaultValue={selectedMember}
-              onValueChange={(value) => setSelectedMember(value)}>
+              onValueChange={(value) => setSelectedMember(value)}
+            >
               <SelectTrigger className="flex w-full">
                 <SelectValue placeholder="Selecione um integrante" />
               </SelectTrigger>

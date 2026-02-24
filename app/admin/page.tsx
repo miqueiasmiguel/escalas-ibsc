@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -15,6 +15,7 @@ import {
   Guitar,
   Drum,
   Piano,
+  AlertTriangle,
 } from "lucide-react";
 
 import {
@@ -58,7 +59,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { analyzeScale } from "@/lib/utils/scale-alerts";
+import {
+  ScaleAlertIcon,
+  ScaleAlertPanel,
+} from "@/components/scale-alert-badge";
 
 const INSTRUMENTS: Instrument[] = [
   "Ministro",
@@ -122,6 +134,14 @@ export default function AdminDashboard() {
     service: "Noite",
     members: [],
   });
+
+  const scaleAlerts = useMemo(
+    () => analyzeScale(editingScale, scales, members),
+    [editingScale, scales, members],
+  );
+
+  const getAlertsForMember = (memberId: string) =>
+    scaleAlerts.filter((a) => a.memberId === memberId);
 
   const saveMember = async () => {
     if (newMemberName.trim()) {
@@ -287,13 +307,14 @@ export default function AdminDashboard() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="service">Culto</Label>
-                        <Select 
+                        <Select
                           defaultValue={editingScale.service}
                           onValueChange={(value) =>
                             setEditingScale({
                               ...editingScale,
                               service: value as ServiceType,
-                            })}
+                            })
+                          }
                         >
                           <SelectTrigger className="flex w-full">
                             <SelectValue placeholder="Selecione um mês/ano" />
@@ -400,6 +421,9 @@ export default function AdminDashboard() {
                                 </select>
                               </div>
                             </div>
+                            <ScaleAlertIcon
+                              alerts={getAlertsForMember(sm.member.id)}
+                            />
                             <Button
                               type="button"
                               variant="ghost"
@@ -431,6 +455,7 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     </div>
+                    <ScaleAlertPanel alerts={scaleAlerts} />
                   </div>
                   <DialogFooter>
                     <Button
@@ -446,8 +471,12 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid gap-4">
-              {scales
-                .map((scale) => (
+              {scales.map((scale) => {
+                const alerts = analyzeScale(scale, scales, members);
+                const warningCount = alerts.filter(
+                  (a) => a.severity === "warning",
+                ).length;
+                return (
                   <Card key={scale.id}>
                     <CardContent>
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -468,6 +497,20 @@ export default function AdminDashboard() {
                               >
                                 {scale.service}
                               </Badge>
+                              {warningCount > 0 && (
+                                <span
+                                  className="inline-flex items-center gap-1 cursor-help"
+                                  title={alerts
+                                    .filter((a) => a.severity === "warning")
+                                    .map((a) => a.message)
+                                    .join("\n")}
+                                >
+                                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                                  <span className="text-[10px] text-amber-500 font-medium">
+                                    {warningCount}
+                                  </span>
+                                </span>
+                              )}
                             </div>
                             <p className="text-xs text-muted-foreground">
                               {format(parseISO(scale.date), "EEEE", {
@@ -486,8 +529,7 @@ export default function AdminDashboard() {
                               {React.createElement(
                                 getInstrumentIcon(sm.instrument),
                                 {
-                                  className:
-                                    "h-2 w-2 text-muted-foreground",
+                                  className: "h-2 w-2 text-muted-foreground",
                                 },
                               )}
                               {sm.member.name}
@@ -525,7 +567,8 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                );
+              })}
             </div>
           </TabsContent>
 

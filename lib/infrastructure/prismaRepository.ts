@@ -22,6 +22,7 @@ type PrismaScaleWithRelations = {
     member: {
       id: string;
       name: string;
+      instruments: string[];
     };
   }>;
 };
@@ -29,23 +30,28 @@ type PrismaScaleWithRelations = {
 export class PrismaMemberRepository implements IMemberRepository {
   async findAll(): Promise<Member[]> {
     const members = await prisma.member.findMany();
-    return members;
+    return members.map((m) => ({
+      ...m,
+      instruments: m.instruments as Instrument[],
+    }));
   }
 
   async findById(id: string): Promise<Member | null> {
     const member = await prisma.member.findUnique({
       where: { id },
     });
-    return member;
+    if (!member) return null;
+    return { ...member, instruments: member.instruments as Instrument[] };
   }
 
   async create(member: Omit<Member, "id">): Promise<Member> {
     const newMember = await prisma.member.create({
       data: {
         name: member.name,
+        instruments: member.instruments,
       },
     });
-    return newMember;
+    return { ...newMember, instruments: newMember.instruments as Instrument[] };
   }
 
   async update(id: string, member: Partial<Member>): Promise<Member> {
@@ -53,9 +59,15 @@ export class PrismaMemberRepository implements IMemberRepository {
       where: { id },
       data: {
         name: member.name,
+        instruments: {
+          set: member.instruments,
+        },
       },
     });
-    return updatedMember;
+    return {
+      ...updatedMember,
+      instruments: updatedMember.instruments as Instrument[],
+    };
   }
 
   async delete(id: string): Promise<void> {
@@ -77,7 +89,7 @@ export class PrismaScaleRepository implements IScaleRepository {
       },
       orderBy: {
         date: "desc",
-      }
+      },
     });
 
     return scales.map(this.mapToDomain);
@@ -202,6 +214,7 @@ export class PrismaScaleRepository implements IScaleRepository {
         member: {
           id: pm.member.id,
           name: pm.member.name,
+          instruments: pm.member.instruments as Instrument[],
         },
         instrument: pm.instrument as Instrument,
       })),

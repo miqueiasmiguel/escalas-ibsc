@@ -8,8 +8,9 @@ datasource db {
 }
 
 model Member {
-  id   String @id @default(uuid())
-  name String
+  id          String   @id @default(uuid())
+  name        String
+  instruments String[]
 
   scaleAssociations ScaleMember[]
 

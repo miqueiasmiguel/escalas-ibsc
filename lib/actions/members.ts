@@ -1,7 +1,7 @@
 "use server";
 
 import { repositoryFactory } from "../infrastructure/factory";
-import { Member } from "../domain/types";
+import { Member, Instrument } from "../domain/types";
 import { revalidatePath } from "next/cache";
 
 export async function getMembers(): Promise<Member[]> {
@@ -9,9 +9,12 @@ export async function getMembers(): Promise<Member[]> {
   return repo.findAll();
 }
 
-export async function addMember(name: string): Promise<Member> {
+export async function addMember(
+  name: string,
+  instruments: Instrument[] = [],
+): Promise<Member> {
   const repo = repositoryFactory.getMemberRepository();
-  const member = await repo.create({ name });
+  const member = await repo.create({ name, instruments });
   revalidatePath("/admin");
   return member;
 }
@@ -22,9 +25,13 @@ export async function deleteMember(id: string): Promise<void> {
   revalidatePath("/admin");
 }
 
-export async function updateMember(id: string, name: string): Promise<Member> {
+export async function updateMember(
+  id: string,
+  name: string,
+  instruments: Instrument[] = [],
+): Promise<Member> {
   const repo = repositoryFactory.getMemberRepository();
-  const member = await repo.update(id, { name });
+  const member = await repo.update(id, { name, instruments });
   revalidatePath("/admin");
   return member;
 }

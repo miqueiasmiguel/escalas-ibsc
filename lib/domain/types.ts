@@ -11,6 +11,7 @@ export type Instrument =
 export interface Member {
   id: string;
   name: string;
+  instruments: Instrument[];
 }
 
 export interface ScaleMember {

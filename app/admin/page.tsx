@@ -33,6 +33,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -107,6 +108,9 @@ export default function AdminDashboard() {
   }, []);
 
   const [newMemberName, setNewMemberName] = useState("");
+  const [selectedInstruments, setSelectedInstruments] = useState<Instrument[]>(
+    [],
+  );
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
 
@@ -129,11 +133,16 @@ export default function AdminDashboard() {
     if (newMemberName.trim()) {
       try {
         if (editingMember) {
-          await apiUpdateMember(editingMember.id, newMemberName);
+          await apiUpdateMember(
+            editingMember.id,
+            newMemberName,
+            selectedInstruments,
+          );
         } else {
-          await apiAddMember(newMemberName);
+          await apiAddMember(newMemberName, selectedInstruments);
         }
         setNewMemberName("");
+        setSelectedInstruments([]);
         setEditingMember(null);
         setIsMemberDialogOpen(false);
         await fetchData();
@@ -146,12 +155,14 @@ export default function AdminDashboard() {
   const openNewMemberDialog = () => {
     setEditingMember(null);
     setNewMemberName("");
+    setSelectedInstruments([]);
     setIsMemberDialogOpen(true);
   };
 
   const openEditMemberDialog = (member: Member) => {
     setEditingMember(member);
     setNewMemberName(member.name);
+    setSelectedInstruments(member.instruments || []);
     setIsMemberDialogOpen(true);
   };
 
@@ -395,11 +406,26 @@ export default function AdminDashboard() {
                                     }
                                   }}
                                 >
-                                  {members.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                      {m.name}
-                                    </option>
-                                  ))}
+                                  {(() => {
+                                    const filteredMembers = members.filter(
+                                      (m) =>
+                                        m.instruments.includes(sm.instrument),
+                                    );
+                                    const displayMembers =
+                                      filteredMembers.length > 0
+                                        ? filteredMembers
+                                        : members;
+
+                                    return displayMembers
+                                      .sort((a, b) =>
+                                        a.name.localeCompare(b.name),
+                                      )
+                                      .map((m) => (
+                                        <option key={m.id} value={m.id}>
+                                          {m.name}
+                                        </option>
+                                      ));
+                                  })()}
                                 </select>
                               </div>
                             </div>
@@ -587,6 +613,44 @@ export default function AdminDashboard() {
                         onKeyDown={(e) => e.key === "Enter" && saveMember()}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Instrumentos</Label>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {INSTRUMENTS.map((inst) => {
+                          const isSelected = selectedInstruments.includes(inst);
+                          const Icon = getInstrumentIcon(inst);
+                          return (
+                            <Badge
+                              key={inst}
+                              variant={isSelected ? "default" : "outline"}
+                              className={cn(
+                                "cursor-pointer gap-1 px-3 py-1 text-xs transition-colors hover:opacity-80",
+                                isSelected
+                                  ? "bg-primary text-primary-foreground"
+                                  : "text-muted-foreground hover:bg-muted",
+                              )}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedInstruments(
+                                    selectedInstruments.filter(
+                                      (i) => i !== inst,
+                                    ),
+                                  );
+                                } else {
+                                  setSelectedInstruments([
+                                    ...selectedInstruments,
+                                    inst,
+                                  ]);
+                                }
+                              }}
+                            >
+                              <Icon className="h-3 w-3" />
+                              {inst}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button
@@ -617,7 +681,20 @@ export default function AdminDashboard() {
                     .map((member) => (
                       <TableRow key={member.id}>
                         <TableCell className="font-medium">
-                          {member.name}
+                          <div>
+                            <div>{member.name}</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {(member.instruments || []).map((inst) => (
+                                <Badge
+                                  key={inst}
+                                  variant="secondary"
+                                  className="text-[10px] px-1.5 py-0 leading-tight"
+                                >
+                                  {inst}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button

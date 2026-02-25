@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, XCircle } from "lucide-react";
 import { ScaleAlert } from "@/lib/utils/scale-alerts";
 
 interface ScaleAlertIconProps {
@@ -15,12 +15,15 @@ interface ScaleAlertIconProps {
 export function ScaleAlertIcon({ alerts }: ScaleAlertIconProps) {
   if (alerts.length === 0) return null;
 
+  const hasCritical = alerts.some((a) => a.severity === "critical");
   const hasWarning = alerts.some((a) => a.severity === "warning");
   const messages = alerts.map((a) => a.message).join("\n");
 
   return (
     <span className="inline-flex shrink-0 cursor-help" title={messages}>
-      {hasWarning ? (
+      {hasCritical ? (
+        <XCircle className="h-4 w-4 text-red-500" />
+      ) : hasWarning ? (
         <AlertTriangle className="h-4 w-4 text-amber-500" />
       ) : (
         <Info className="h-4 w-4 text-blue-400" />
@@ -48,6 +51,10 @@ export function ScaleAlertPanel({ alerts }: ScaleAlertPanelProps) {
     (alert, index, self) => self.findIndex((a) => a.id === alert.id) === index,
   );
 
+  const criticalAlerts = [
+    ...generalAlerts.filter((a) => a.severity === "critical"),
+    ...uniqueMemberAlerts.filter((a) => a.severity === "critical"),
+  ];
   const warningAlerts = [
     ...generalAlerts.filter((a) => a.severity === "warning"),
     ...uniqueMemberAlerts.filter((a) => a.severity === "warning"),
@@ -58,7 +65,25 @@ export function ScaleAlertPanel({ alerts }: ScaleAlertPanelProps) {
   ];
 
   return (
-    <div className="max-h-32 space-y-2 overflow-y-auto pr-1">
+    <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
+      {criticalAlerts.length > 0 && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3">
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-red-500">
+            <XCircle className="h-3.5 w-3.5" />
+            Crítico
+          </div>
+          <ul className="space-y-1">
+            {criticalAlerts.map((alert) => (
+              <li
+                key={alert.id}
+                className="text-xs text-red-400/80 leading-relaxed"
+              >
+                • {alert.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {warningAlerts.length > 0 && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
           <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-amber-500">

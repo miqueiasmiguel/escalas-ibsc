@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   Calendar as CalendarIcon,
   AlertTriangle,
+  XCircle,
 } from "lucide-react";
 
 import {
@@ -620,6 +621,9 @@ export default function AdminDashboard() {
             <div className="grid gap-4">
               {filteredScales.map((scale) => {
                 const alerts = analyzeScale(scale, scales, members);
+                const criticalCount = alerts.filter(
+                  (a) => a.severity === "critical",
+                ).length;
                 const warningCount = alerts.filter(
                   (a) => a.severity === "warning",
                 ).length;
@@ -644,6 +648,20 @@ export default function AdminDashboard() {
                               >
                                 {scale.service}
                               </Badge>
+                              {criticalCount > 0 && (
+                                <span
+                                  className="inline-flex items-center gap-1 cursor-help"
+                                  title={alerts
+                                    .filter((a) => a.severity === "critical")
+                                    .map((a) => a.message)
+                                    .join("\n")}
+                                >
+                                  <XCircle className="h-3.5 w-3.5 text-red-500" />
+                                  <span className="text-[10px] text-red-500 font-medium">
+                                    {criticalCount}
+                                  </span>
+                                </span>
+                              )}
                               {warningCount > 0 && (
                                 <span
                                   className="inline-flex items-center gap-1 cursor-help"

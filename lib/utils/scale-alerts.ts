@@ -1,6 +1,6 @@
 import { ScaleEntry, Member, ScaleMember } from "../domain/types";
 
-export type AlertSeverity = "warning" | "info";
+export type AlertSeverity = "critical" | "warning" | "info";
 
 export interface ScaleAlert {
   id: string;
@@ -41,6 +41,7 @@ export function analyzeScale(
   alerts.push(
     ...checkInactiveMembers(currentMembers, allMembers, sortedScales),
   );
+  alerts.push(...checkOpenSlots(currentMembers));
 
   return alerts;
 }
@@ -251,6 +252,18 @@ function checkInactiveMembers(
   }
 
   return alerts;
+}
+
+/**
+ * Checks if there are any open slots (members without an assigned person).
+ */
+function checkOpenSlots(currentMembers: ScaleMember[]): ScaleAlert[] {
+  const openSlots = currentMembers.filter((sm) => !sm.member);
+  return openSlots.map((sm) => ({
+    id: `open-slot-${sm.instrument}-${Math.random().toString(36).substr(2, 5)}`,
+    severity: "critical",
+    message: `Vaga em aberto: ${sm.instrument}`,
+  }));
 }
 
 function formatDateBR(dateStr: string): string {

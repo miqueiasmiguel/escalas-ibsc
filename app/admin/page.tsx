@@ -155,7 +155,13 @@ export default function AdminDashboard() {
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [filterMonth, setFilterMonth] = useState(format(new Date(), "yyyy-MM"));
+  const [filterMonth, setFilterMonth] = useState("");
+
+  React.useEffect(() => {
+    if (mounted) {
+      setFilterMonth(format(new Date(), "yyyy-MM"));
+    }
+  }, [mounted]);
 
   const generationMonths = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {

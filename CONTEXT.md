@@ -35,17 +35,18 @@ type Instrument =
   | "Baixo"
   | "Teclado"
   | "Bateria"
-  | "Percussão"
+  | "Cajon"
   | "Ministro";
 type ServiceType = "Manhã" | "Noite" | "Especial";
 
 interface Member {
   id: string;
   name: string;
+  instruments: Instrument[]; // Instrumentos que o membro toca
 }
 
 interface ScaleMember {
-  member: Member;
+  member?: Member; // Opcional para suportar "Vagas"
   instrument: Instrument;
 }
 
@@ -54,6 +55,16 @@ interface ScaleEntry {
   date: string; // ISO string ou YYYY-MM-DD
   service: ServiceType; // Tipo do culto
   members: ScaleMember[];
+}
+
+interface ScaleTemplate {
+  id: string;
+  description: string;
+  dayOfWeek: number; // 0-6 (Domingo-Sábado)
+  service: ServiceType;
+  requiresConfirmation: boolean;
+  instruments: Instrument[];
+  active: boolean;
 }
 ```
 
@@ -85,7 +96,8 @@ lib/
 │   └── factory.ts        # RepositoryFactory (Singleton)
 ├── actions/
 │   ├── members.ts        # Server Actions: getMembers, addMember, updateMember, deleteMember
-│   └── scales.ts         # Server Actions: getScales, saveScale, deleteScale, getScalesByMonth
+│   ├── scales.ts         # Server Actions: getScales, saveScale, deleteScale, getScalesByMonth
+│   └── templates.ts      # Server Actions: CRUD de modelos e geração automática de escalas
 └── utils/
     ├── pdf-export.ts     # Exportação de escalas para PDF
     └── scale-alerts.ts   # Alertas inteligentes na criação/edição de escalas
@@ -141,15 +153,19 @@ escalas-ibsc/
 
 ### `/admin` — Painel Administrativo
 
-- **Aba Membros**: Cadastro, edição e exclusão de membros.
-- **Aba Escalas**: Criação e edição de escalas com seleção de data, tipo de culto e atribuição de membros a instrumentos.
-- Dialogs modais para formulários (Radix Dialog).
+- **Aba Membros**: Cadastro, edição e exclusão de integrantes, com associação de **instrumentos** que cada um toca.
+- **Aba Escalas**: Criação e edição de escalas.
+  - **Filtro por Mês**: Visualização filtrada das escalas de um mês específico.
+  - **Geração Automática**: Botão para gerar todas as escalas do mês selecionado a partir dos modelos ativos.
+  - **Deduplicação**: O sistema evita criar escalas duplicadas para o mesmo dia/horário.
+- **Aba Modelos**: Gerenciamento de templates (cultos recorrentes) para automação.
 - **Alertas inteligentes** exibidos na lista de escalas e dentro do dialog de edição:
-  - ⚠️ **Sobrecarga por instrumento** — membro toca um instrumento com frequência acima da média vs. demais (janela de 8 escalas).
-  - ⚠️ **Sobrecarga total** — membro presente em muitas escalas recentes somando todos os instrumentos.
+  - 🔴 **Vaga em aberto (Crítico)** — escalas com instrumentos sem músicos escalados.
+  - ⚠️ **Sobrecarga por instrumento** — membro toca um instrumento com frequência acima da média vs. demais.
+  - ⚠️ **Sobrecarga total** — frequencia excessiva em várias escalas recentes.
   - ⚠️ **Escalas consecutivas** — membro escalado 2+ vezes seguidas.
   - ⚠️ **Escala sem Voz** — nenhum integrante com instrumento "Voz".
-  - ℹ️ **Membro inativo** — membro não escalado há 4+ semanas (sugestão).
+  - ℹ️ **Membro inativo** — sugestão de membros que não participam há 4+ semanas.
 
 ---
 

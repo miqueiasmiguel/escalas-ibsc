@@ -92,14 +92,17 @@ export const exportScalesToPDF = (
     const groupedMembers = scale.members.reduce(
       (acc, sm) => {
         if (!acc[sm.instrument]) acc[sm.instrument] = [];
-        acc[sm.instrument].push(sm.member.name);
+        if (sm.member) acc[sm.instrument].push(sm.member.name);
         return acc;
       },
       {} as Record<string, string[]>,
     );
 
     const tableRows = Object.entries(groupedMembers).map(
-      ([instrument, names]) => [instrument.toUpperCase(), names.join(", ")],
+      ([instrument, names]) => [
+        instrument.toUpperCase(),
+        names.length > 0 ? names.join(", ") : "VAGA DISPONÍVEL",
+      ],
     );
 
     autoTable(doc, {

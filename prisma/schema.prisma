@@ -33,10 +33,22 @@ model ScaleMember {
   scaleId String
   scale   ScaleEntry @relation(fields: [scaleId], references: [id], onDelete: Cascade)
 
-  memberId String
-  member   Member @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  memberId String?
+  member   Member? @relation(fields: [memberId], references: [id], onDelete: Restrict)
 
   instrument String
 
   @@map("scale_members")
+}
+
+model ScaleTemplate {
+  id                   String   @id @default(uuid())
+  description          String
+  dayOfWeek            Int // 0-6 (Sunday-Saturday)
+  service              String // ServiceType
+  requiresConfirmation Boolean  @default(false)
+  instruments          String[]
+  active               Boolean  @default(true)
+
+  @@map("scale_templates")
 }

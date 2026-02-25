@@ -77,7 +77,7 @@ export default function ScalePage() {
       const isMonthMatch = !selectedMonth || scaleMonth === selectedMonth;
       const isMemberMatch =
         selectedMember === "all" ||
-        scale.members.some((m) => m.member.id === selectedMember);
+        scale.members.some((m) => m.member?.id === selectedMember);
 
       return isMonthMatch && isMemberMatch;
     });
@@ -200,13 +200,10 @@ export default function ScalePage() {
                       scale.members.reduce(
                         (acc, sm) => {
                           if (!acc[sm.instrument]) acc[sm.instrument] = [];
-                          acc[sm.instrument].push(sm.member);
+                          if (sm.member) acc[sm.instrument].push(sm.member);
                           return acc;
                         },
-                        {} as Record<
-                          string,
-                          (typeof scale.members)[0]["member"][]
-                        >,
+                        {} as Record<string, Member[]>,
                       ),
                     ).map(([instrument, members], idx) => (
                       <div
@@ -228,23 +225,29 @@ export default function ScalePage() {
                             {instrument}:
                           </span>
                           <span className="text-foreground">
-                            {members.map((m, i) => (
-                              <React.Fragment key={m.id + "." + i}>
-                                <span
-                                  className={cn(
-                                    m.id === selectedMember &&
-                                      "text-primary font-bold underline decoration-primary/30 underline-offset-4",
-                                  )}
-                                >
-                                  {m.name}
-                                </span>
-                                {i < members.length - 2
-                                  ? ", "
-                                  : i === members.length - 2
-                                    ? " e "
-                                    : ""}
-                              </React.Fragment>
-                            ))}
+                            {members.length > 0 ? (
+                              members.map((m, i) => (
+                                <React.Fragment key={m.id + "." + i}>
+                                  <span
+                                    className={cn(
+                                      m.id === selectedMember &&
+                                        "text-primary font-bold underline decoration-primary/30 underline-offset-4",
+                                    )}
+                                  >
+                                    {m.name}
+                                  </span>
+                                  {i < members.length - 2
+                                    ? ", "
+                                    : i === members.length - 2
+                                      ? " e "
+                                      : ""}
+                                </React.Fragment>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground italic">
+                                Vaga disponível
+                              </span>
+                            )}
                           </span>
                         </div>
                       </div>

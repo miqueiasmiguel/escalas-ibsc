@@ -61,6 +61,7 @@ function checkOverloadByInstrument(
 
   for (const scale of recentScales) {
     for (const sm of scale.members) {
+      if (!sm.member) continue;
       if (!instrumentCounts.has(sm.instrument)) {
         instrumentCounts.set(sm.instrument, new Map());
       }
@@ -69,8 +70,8 @@ function checkOverloadByInstrument(
     }
   }
 
-  // Check each member in the current scale
   for (const sm of currentMembers) {
+    if (!sm.member) continue;
     const memberMap = instrumentCounts.get(sm.instrument);
     if (!memberMap || memberMap.size < 2) continue; // Need at least 2 people for comparison
 
@@ -107,7 +108,9 @@ function checkOverloadTotal(
 
   for (const scale of recentScales) {
     // Use a Set to count each member only once per scale
-    const uniqueMembers = new Set(scale.members.map((sm) => sm.member.id));
+    const uniqueMembers = new Set(
+      scale.members.filter((sm) => !!sm.member).map((sm) => sm.member!.id),
+    );
     for (const memberId of uniqueMembers) {
       memberScaleCount.set(memberId, (memberScaleCount.get(memberId) || 0) + 1);
     }
@@ -119,14 +122,16 @@ function checkOverloadTotal(
   const average = counts.reduce((sum, c) => sum + c, 0) / counts.length;
 
   // Get unique member IDs in the current scale
-  const currentMemberIds = new Set(currentMembers.map((sm) => sm.member.id));
+  const currentMemberIds = new Set(
+    currentMembers.filter((sm) => !!sm.member).map((sm) => sm.member!.id),
+  );
 
   for (const memberId of currentMemberIds) {
     const memberCount = memberScaleCount.get(memberId) || 0;
 
     if (average > 0 && memberCount >= average * OVERLOAD_THRESHOLD) {
-      const member = currentMembers.find((sm) => sm.member.id === memberId);
-      if (member) {
+      const member = currentMembers.find((sm) => sm.member?.id === memberId);
+      if (member && member.member) {
         alerts.push({
           id: `overload-total-${memberId}`,
           severity: "warning",
@@ -160,16 +165,18 @@ function checkConsecutiveScales(
   const recentConsecutive = priorScales.slice(0, CONSECUTIVE_THRESHOLD);
   if (recentConsecutive.length < CONSECUTIVE_THRESHOLD) return alerts;
 
-  const currentMemberIds = new Set(currentMembers.map((sm) => sm.member.id));
+  const currentMemberIds = new Set(
+    currentMembers.filter((sm) => !!sm.member).map((sm) => sm.member!.id),
+  );
 
   for (const memberId of currentMemberIds) {
     const inAllRecent = recentConsecutive.every((scale) =>
-      scale.members.some((sm) => sm.member.id === memberId),
+      scale.members.some((sm) => sm.member?.id === memberId),
     );
 
     if (inAllRecent) {
-      const member = currentMembers.find((sm) => sm.member.id === memberId);
-      if (member) {
+      const member = currentMembers.find((sm) => sm.member?.id === memberId);
+      if (member && member.member) {
         alerts.push({
           id: `consecutive-${memberId}`,
           severity: "warning",
@@ -212,7 +219,9 @@ function checkInactiveMembers(
   sortedScales: ScaleEntry[],
 ): ScaleAlert[] {
   const alerts: ScaleAlert[] = [];
-  const currentMemberIds = new Set(currentMembers.map((sm) => sm.member.id));
+  const currentMemberIds = new Set(
+    currentMembers.filter((sm) => !!sm.member).map((sm) => sm.member!.id),
+  );
 
   const now = new Date();
   const inactiveThreshold = new Date(now);
@@ -224,7 +233,7 @@ function checkInactiveMembers(
 
     // Find the most recent scale containing this member
     const lastScale = sortedScales.find((scale) =>
-      scale.members.some((sm) => sm.member.id === member.id),
+      scale.members.some((sm) => sm.member?.id === member.id),
     );
 
     const isInactive = !lastScale || lastScale.date < thresholdStr;

@@ -1,9 +1,14 @@
-import { IMemberRepository, IScaleRepository } from "@/lib/domain/interfaces";
+import {
+  IMemberRepository,
+  IScaleRepository,
+  IScaleTemplateRepository,
+} from "@/lib/domain/interfaces";
 import {
   Member,
   ScaleEntry,
   Instrument,
   ServiceType,
+  ScaleTemplate,
 } from "@/lib/domain/types";
 import { prisma } from "./prisma";
 
@@ -23,8 +28,18 @@ type PrismaScaleWithRelations = {
       id: string;
       name: string;
       instruments: string[];
-    };
+    } | null;
   }>;
+};
+
+type PrismaTemplate = {
+  id: string;
+  description: string;
+  dayOfWeek: number;
+  service: string;
+  requiresConfirmation: boolean;
+  instruments: string[];
+  active: boolean;
 };
 
 export class PrismaMemberRepository implements IMemberRepository {
@@ -153,7 +168,7 @@ export class PrismaScaleRepository implements IScaleRepository {
             await tx.scaleMember.createMany({
               data: scale.members.map((m) => ({
                 scaleId: scale.id,
-                memberId: m.member.id,
+                memberId: m.member?.id ?? null,
                 instrument: m.instrument,
               })),
             });
@@ -182,7 +197,7 @@ export class PrismaScaleRepository implements IScaleRepository {
           service: scale.service,
           members: {
             create: scale.members.map((m) => ({
-              memberId: m.member.id,
+              memberId: m.member?.id ?? null,
               instrument: m.instrument,
             })),
           },
@@ -211,13 +226,70 @@ export class PrismaScaleRepository implements IScaleRepository {
       date: prismaScale.date,
       service: prismaScale.service as ServiceType,
       members: prismaScale.members.map((pm) => ({
-        member: {
-          id: pm.member.id,
-          name: pm.member.name,
-          instruments: pm.member.instruments as Instrument[],
-        },
+        member: pm.member
+          ? {
+              id: pm.member.id,
+              name: pm.member.name,
+              instruments: pm.member.instruments as Instrument[],
+            }
+          : undefined,
         instrument: pm.instrument as Instrument,
       })),
+    };
+  }
+}
+
+export class PrismaScaleTemplateRepository implements IScaleTemplateRepository {
+  async findAll(): Promise<ScaleTemplate[]> {
+    const templates = await prisma.scaleTemplate.findMany();
+    return templates.map(this.mapToDomain);
+  }
+
+  async findById(id: string): Promise<ScaleTemplate | null> {
+    const template = await prisma.scaleTemplate.findUnique({
+      where: { id },
+    });
+    if (!template) return null;
+    return this.mapToDomain(template);
+  }
+
+  async save(template: ScaleTemplate): Promise<ScaleTemplate> {
+    const data = {
+      description: template.description,
+      dayOfWeek: template.dayOfWeek,
+      service: template.service,
+      requiresConfirmation: template.requiresConfirmation,
+      instruments: template.instruments,
+      active: template.active,
+    };
+
+    const result = await prisma.scaleTemplate.upsert({
+      where: { id: template.id },
+      create: {
+        id: template.id && template.id.length > 0 ? template.id : undefined,
+        ...data,
+      },
+      update: data,
+    });
+
+    return this.mapToDomain(result);
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.scaleTemplate.delete({
+      where: { id },
+    });
+  }
+
+  private mapToDomain(prismaTemplate: PrismaTemplate): ScaleTemplate {
+    return {
+      id: prismaTemplate.id,
+      description: prismaTemplate.description,
+      dayOfWeek: prismaTemplate.dayOfWeek,
+      service: prismaTemplate.service as ServiceType,
+      requiresConfirmation: prismaTemplate.requiresConfirmation,
+      instruments: prismaTemplate.instruments as Instrument[],
+      active: prismaTemplate.active,
     };
   }
 }

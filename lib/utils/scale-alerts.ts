@@ -1,4 +1,4 @@
-import { ScaleEntry, Member, ScaleMember } from "../domain/types";
+import { ScaleEntry, Member, ScaleMember, ServiceType } from "../domain/types";
 
 export type AlertSeverity = "critical" | "warning" | "info";
 
@@ -42,6 +42,81 @@ export function analyzeScale(
     ...checkInactiveMembers(currentMembers, allMembers, sortedScales),
   );
   alerts.push(...checkOpenSlots(currentMembers));
+  if (editingScale.date) {
+    alerts.push(
+      ...checkUnavailability(
+        currentMembers,
+        editingScale.date,
+        editingScale.service as ServiceType,
+        allMembers,
+      ),
+    );
+  }
+
+  return alerts;
+}
+
+/**
+ * Checks if a member is unavailable on the scale date/service.
+ */
+function checkUnavailability(
+  currentMembers: ScaleMember[],
+  scaleDateStr: string,
+  serviceType: ServiceType,
+  allMembers: Member[],
+): ScaleAlert[] {
+  const alerts: ScaleAlert[] = [];
+
+  // Parse actual scale date/time based on service type.
+  // Assuming a rough convention since we don't have exact times in the schema for Scales,
+  // but Unavailabilities use full DateTime (start, end).
+  // If scaleDate is strictly YYYY-MM-DD, the scale is implicitly happening that day.
+  // We'll create a Date object for the scale date, and do a check if the unavailability overlaps
+  // with any part of that day, or more specifically, the service time (Morning vs Night).
+
+  const [year, month, day] = scaleDateStr.split("-").map(Number);
+  if (!year || !month || !day) return alerts;
+
+  // Set rough boundaries per ServiceType
+  // The user requested to ignore specific times and check if the scale date
+  // falls within the unavailability period regardless of the time.
+  const scaleStart = new Date(year, month - 1, day);
+  scaleStart.setHours(0, 0, 0, 0);
+  const scaleEnd = new Date(year, month - 1, day);
+  scaleEnd.setHours(23, 59, 59, 999);
+
+  const scaleStartTime = scaleStart.getTime();
+  const scaleEndTime = scaleEnd.getTime();
+
+  for (const sm of currentMembers) {
+    if (!sm.member) continue;
+
+    // Find the full member info to access unavailabilities
+    const fullMember = allMembers.find((m) => m.id === sm.member!.id);
+    if (!fullMember || !fullMember.unavailabilities) continue;
+
+    for (const unav of fullMember.unavailabilities) {
+      const uStartObj = new Date(unav.start);
+      uStartObj.setHours(0, 0, 0, 0); // Ignore time, lock to start of day
+      const uStart = uStartObj.getTime();
+
+      const uEndObj = new Date(unav.end);
+      uEndObj.setHours(23, 59, 59, 999); // Ignore time, lock to end of day
+      const uEnd = uEndObj.getTime();
+
+      // Check for overlap: scale starts before/when unav ends AND scale ends after/when unav starts.
+      if (scaleStartTime <= uEnd && scaleEndTime >= uStart) {
+        alerts.push({
+          id: `unavailability-${sm.member.id}-${unav.id}`,
+          severity: "critical",
+          memberId: sm.member.id,
+          message: `${sm.member.name} cadastrou indisponibilidade neste período.`,
+        });
+        // One alert per member is enough
+        break;
+      }
+    }
+  }
 
   return alerts;
 }

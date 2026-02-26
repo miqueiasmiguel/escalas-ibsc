@@ -35,3 +35,19 @@ export async function updateMember(
   revalidatePath("/admin");
   return member;
 }
+
+export async function addUnavailability(
+  memberId: string,
+  start: string,
+  end: string,
+): Promise<void> {
+  const repo = repositoryFactory.getUnavailabilityRepository();
+  await repo.create({ memberId, start, end });
+  revalidatePath("/admin");
+}
+
+export async function deleteUnavailability(id: string): Promise<void> {
+  const repo = repositoryFactory.getUnavailabilityRepository();
+  await repo.delete(id);
+  revalidatePath("/admin");
+}

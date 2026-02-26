@@ -39,10 +39,18 @@ type Instrument =
   | "Ministro";
 type ServiceType = "Manhã" | "Noite" | "Especial";
 
+interface MemberUnavailability {
+  id: string;
+  memberId: string;
+  start: string; // ISO datetime
+  end: string; // ISO datetime
+}
+
 interface Member {
   id: string;
   name: string;
   instruments: Instrument[]; // Instrumentos que o membro toca
+  unavailabilities?: MemberUnavailability[];
 }
 
 interface ScaleMember {
@@ -153,13 +161,14 @@ escalas-ibsc/
 
 ### `/admin` — Painel Administrativo
 
-- **Aba Membros**: Cadastro, edição e exclusão de integrantes, com associação de **instrumentos** que cada um toca.
+- **Aba Membros**: Cadastro, edição e exclusão de integrantes, com associação de **instrumentos** que cada um toca e registro de **indisponibilidades** (períodos de ausência).
 - **Aba Escalas**: Criação e edição de escalas.
   - **Filtro por Mês**: Visualização filtrada das escalas de um mês específico.
   - **Geração Automática**: Botão para gerar todas as escalas do mês selecionado a partir dos modelos ativos.
   - **Deduplicação**: O sistema evita criar escalas duplicadas para o mesmo dia/horário.
 - **Aba Modelos**: Gerenciamento de templates (cultos recorrentes) para automação.
 - **Alertas inteligentes** exibidos na lista de escalas e dentro do dialog de edição:
+  - 🛑 **Indisponibilidade (Crítico)** — membro foi escalado em um **dia (data)** onde registrou indisponibilidade, ignorando restrições de horas ou qual tipo de culto está sendo escalado.
   - 🔴 **Vaga em aberto (Crítico)** — escalas com instrumentos sem músicos escalados.
   - ⚠️ **Sobrecarga por instrumento** — membro toca um instrumento com frequência acima da média vs. demais.
   - ⚠️ **Sobrecarga total** — frequencia excessiva em várias escalas recentes.

@@ -2,6 +2,7 @@ import {
   IMemberRepository,
   IScaleRepository,
   IScaleTemplateRepository,
+  IUnavailabilityRepository,
 } from "@/lib/domain/interfaces";
 import {
   Member,
@@ -44,19 +45,41 @@ type PrismaTemplate = {
 
 export class PrismaMemberRepository implements IMemberRepository {
   async findAll(): Promise<Member[]> {
-    const members = await prisma.member.findMany();
+    const members = await prisma.member.findMany({
+      include: {
+        unavailabilities: true,
+      },
+    });
     return members.map((m) => ({
       ...m,
       instruments: m.instruments as Instrument[],
+      unavailabilities: m.unavailabilities.map((u) => ({
+        id: u.id,
+        memberId: u.memberId,
+        start: u.start.toISOString(),
+        end: u.end.toISOString(),
+      })),
     }));
   }
 
   async findById(id: string): Promise<Member | null> {
     const member = await prisma.member.findUnique({
       where: { id },
+      include: {
+        unavailabilities: true,
+      },
     });
     if (!member) return null;
-    return { ...member, instruments: member.instruments as Instrument[] };
+    return {
+      ...member,
+      instruments: member.instruments as Instrument[],
+      unavailabilities: member.unavailabilities.map((u) => ({
+        id: u.id,
+        memberId: u.memberId,
+        start: u.start.toISOString(),
+        end: u.end.toISOString(),
+      })),
+    };
   }
 
   async create(member: Omit<Member, "id">): Promise<Member> {
@@ -65,8 +88,15 @@ export class PrismaMemberRepository implements IMemberRepository {
         name: member.name,
         instruments: member.instruments,
       },
+      include: {
+        unavailabilities: true,
+      },
     });
-    return { ...newMember, instruments: newMember.instruments as Instrument[] };
+    return {
+      ...newMember,
+      instruments: newMember.instruments as Instrument[],
+      unavailabilities: [],
+    };
   }
 
   async update(id: string, member: Partial<Member>): Promise<Member> {
@@ -78,15 +108,46 @@ export class PrismaMemberRepository implements IMemberRepository {
           set: member.instruments,
         },
       },
+      include: {
+        unavailabilities: true,
+      },
     });
     return {
       ...updatedMember,
       instruments: updatedMember.instruments as Instrument[],
+      unavailabilities: updatedMember.unavailabilities.map((u) => ({
+        id: u.id,
+        memberId: u.memberId,
+        start: u.start.toISOString(),
+        end: u.end.toISOString(),
+      })),
     };
   }
 
   async delete(id: string): Promise<void> {
     await prisma.member.delete({
+      where: { id },
+    });
+  }
+}
+
+export class PrismaUnavailabilityRepository implements IUnavailabilityRepository {
+  async create(unavailability: {
+    memberId: string;
+    start: string;
+    end: string;
+  }): Promise<void> {
+    await prisma.memberUnavailability.create({
+      data: {
+        memberId: unavailability.memberId,
+        start: new Date(unavailability.start),
+        end: new Date(unavailability.end),
+      },
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.memberUnavailability.delete({
       where: { id },
     });
   }

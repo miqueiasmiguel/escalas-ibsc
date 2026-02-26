@@ -22,3 +22,12 @@ export interface IScaleTemplateRepository {
   save(template: ScaleTemplate): Promise<ScaleTemplate>;
   delete(id: string): Promise<void>;
 }
+
+export interface IUnavailabilityRepository {
+  create(unavailability: {
+    memberId: string;
+    start: string;
+    end: string;
+  }): Promise<void>;
+  delete(id: string): Promise<void>;
+}

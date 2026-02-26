@@ -13,8 +13,19 @@ model Member {
   instruments String[]
 
   scaleAssociations ScaleMember[]
+  unavailabilities  MemberUnavailability[]
 
   @@map("members")
+}
+
+model MemberUnavailability {
+  id       String   @id @default(uuid())
+  memberId String
+  member   Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  start    DateTime
+  end      DateTime
+
+  @@map("member_unavailabilities")
 }
 
 model ScaleEntry {

@@ -8,10 +8,18 @@ export type Instrument =
   | "Cajon"
   | "Ministro";
 
+export interface MemberUnavailability {
+  id: string;
+  memberId: string;
+  start: string; // ISO datetime
+  end: string; // ISO datetime
+}
+
 export interface Member {
   id: string;
   name: string;
   instruments: Instrument[];
+  unavailabilities?: MemberUnavailability[];
 }
 
 export interface ScaleMember {

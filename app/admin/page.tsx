@@ -12,6 +12,7 @@ import {
   Calendar as CalendarIcon,
   AlertTriangle,
   XCircle,
+  CalendarOff,
 } from "lucide-react";
 
 import {
@@ -19,6 +20,8 @@ import {
   addMember as apiAddMember,
   deleteMember as apiDeleteMember,
   updateMember as apiUpdateMember,
+  addUnavailability,
+  deleteUnavailability,
 } from "@/lib/actions/members";
 import {
   getScales,
@@ -157,6 +160,12 @@ export default function AdminDashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [filterMonth, setFilterMonth] = useState("");
 
+  const [isUnavailDialogOpen, setIsUnavailDialogOpen] = useState(false);
+  const [selectedMemberUnavail, setSelectedMemberUnavail] =
+    useState<Member | null>(null);
+  const [newUnavailStart, setNewUnavailStart] = useState("");
+  const [newUnavailEnd, setNewUnavailEnd] = useState("");
+
   React.useEffect(() => {
     if (mounted) {
       setFilterMonth(format(new Date(), "yyyy-MM"));
@@ -228,6 +237,43 @@ export default function AdminDashboard() {
       await fetchData();
     } catch (error) {
       console.error("Failed to delete member:", error);
+    }
+  };
+
+  const fetchAndUpdateMember = async () => {
+    await fetchData();
+    const updatedMembers = await getMembers();
+    if (selectedMemberUnavail) {
+      const updated = updatedMembers.find(
+        (m) => m.id === selectedMemberUnavail.id,
+      );
+      setSelectedMemberUnavail(updated || null);
+    }
+  };
+
+  const saveUnavailability = async () => {
+    if (selectedMemberUnavail && newUnavailStart && newUnavailEnd) {
+      try {
+        await addUnavailability(
+          selectedMemberUnavail.id,
+          new Date(newUnavailStart).toISOString(),
+          new Date(newUnavailEnd).toISOString(),
+        );
+        setNewUnavailStart("");
+        setNewUnavailEnd("");
+        await fetchAndUpdateMember();
+      } catch (error) {
+        console.error("Failed to save unavailability:", error);
+      }
+    }
+  };
+
+  const handleDeleteUnavailability = async (id: string) => {
+    try {
+      await deleteUnavailability(id);
+      await fetchAndUpdateMember();
+    } catch (error) {
+      console.error("Failed to delete unavailability:", error);
     }
   };
 
@@ -840,6 +886,88 @@ export default function AdminDashboard() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+
+              <Dialog
+                open={isUnavailDialogOpen}
+                onOpenChange={setIsUnavailDialogOpen}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      Indisponibilidades: {selectedMemberUnavail?.name}
+                    </DialogTitle>
+                    <DialogDescription>
+                      Gerencie os períodos em que este integrante não poderá ser
+                      escalado.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+                      {selectedMemberUnavail?.unavailabilities?.map((u) => (
+                        <div
+                          key={u.id}
+                          className="flex justify-between items-center bg-muted/50 p-3 rounded-md border"
+                        >
+                          <div className="text-sm space-y-1">
+                            <div>
+                              <span className="font-semibold">Início:</span>{" "}
+                              {format(parseISO(u.start), "dd/MM/yyyy HH:mm", {
+                                locale: ptBR,
+                              })}
+                            </div>
+                            <div>
+                              <span className="font-semibold">Fim:</span>{" "}
+                              {format(parseISO(u.end), "dd/MM/yyyy HH:mm", {
+                                locale: ptBR,
+                              })}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive h-8 w-8 hover:bg-destructive/10"
+                            onClick={() => handleDeleteUnavailability(u.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      {(!selectedMemberUnavail?.unavailabilities ||
+                        selectedMemberUnavail.unavailabilities.length ===
+                          0) && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Nenhuma indisponibilidade cadastrada.
+                        </p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 mt-2 pt-4 border-t">
+                      <div className="space-y-2">
+                        <Label>Início</Label>
+                        <Input
+                          type="datetime-local"
+                          value={newUnavailStart}
+                          onChange={(e) => setNewUnavailStart(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Fim</Label>
+                        <Input
+                          type="datetime-local"
+                          value={newUnavailEnd}
+                          onChange={(e) => setNewUnavailEnd(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      onClick={saveUnavailability}
+                      disabled={!newUnavailStart || !newUnavailEnd}
+                      className="w-full mt-2"
+                    >
+                      Adicionar Indisponibilidade
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <Card>
@@ -872,6 +1000,16 @@ export default function AdminDashboard() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedMemberUnavail(member);
+                              setIsUnavailDialogOpen(true);
+                            }}
+                          >
+                            <CalendarOff className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"

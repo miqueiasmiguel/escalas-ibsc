@@ -739,7 +739,7 @@ export default function AdminDashboard() {
                         "ring-2 ring-primary ring-offset-2 scale-[1.01] shadow-lg",
                     )}
                   >
-                    <CardContent className="pt-6">
+                    <CardContent>
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-4">
                           <CalendarIcon className="h-5 w-5" />

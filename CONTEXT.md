@@ -162,10 +162,13 @@ escalas-ibsc/
 
 ### `/` — Página Principal (Visualização)
 
-- Lista todas as escalas cadastradas.
-- Filtros por mês, tipo de culto e membro.
-- Ícones visuais por instrumento (Lucide Icons).
-- Botão de **exportação para PDF** (respeitando filtros aplicados).
+- **Organização por Seções**: As escalas são agrupadas automaticamente em três categorias temporais:
+  - **Próxima Escala**: Destaque visual premium para o compromisso mais iminente.
+  - **Próximas Datas**: Lista cronológica de escalas futuras.
+  - **Histórico Anterior**: Acesso rápido a escalas que já passaram.
+- **Destaque Inteligente**: Identifica visualmente se a próxima escala é do integrante selecionado ("Sua próxima escala").
+- **Filtros Flexíveis**: Filtros por mês (incluindo opção "Todos os meses"), tipo de culto e membro.
+- **Exportação para PDF**: Botão de exportação que respeita a ordem cronológica e os filtros aplicados.
 
 ### `/admin` — Painel Administrativo
 

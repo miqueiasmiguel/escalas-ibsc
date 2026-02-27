@@ -128,10 +128,10 @@ export default function ScalePage() {
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-primary">
-              Escalas de Louvor
+              Escalas do Dep. Música
             </h1>
             <p className="text-muted-foreground">
-              Visualize e filtre as escalas do ministério.
+              Visualize e filtre as escalas do Dep. Música da IBS Cristo.
             </p>
           </div>
           <button

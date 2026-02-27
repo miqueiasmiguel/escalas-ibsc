@@ -141,6 +141,7 @@ escalas-ibsc/
 ├── components/
 │   ├── theme-provider.tsx     # Provider de tema (next-themes)
 │   ├── scale-alert-badge.tsx  # Componentes de alertas (ScaleAlertIcon, ScaleAlertPanel)
+│   ├── member-scale-counter.tsx # Painel flutuante com resumo de escalas e destaque
 │   └── ui/                    # Componentes shadcn/ui (Button, Card, Dialog, Input, Label, Select, Table, Tabs, Badge)
 ├── lib/                    # Lógica de negócio e infraestrutura (ver seção Arquitetura)
 ├── prisma/
@@ -173,6 +174,8 @@ escalas-ibsc/
   - **Filtro por Mês**: Visualização filtrada das escalas de um mês específico.
   - **Geração Automática**: Botão para gerar todas as escalas do mês selecionado a partir dos modelos ativos.
   - **Deduplicação**: O sistema evita criar escalas duplicadas para o mesmo dia/horário.
+  - **Resumo do Mês (Contador)**: Painel flutuante que exibe a contagem de vezes que cada membro foi escalado no mês selecionado, ordenado de forma decrescente.
+  - **Destaque Interativo**: Clicar em um membro no painel de resumo realça visualmente todas as escalas onde ele está presente no dashboard.
 - **Aba Modelos**: Gerenciamento de templates (cultos recorrentes) para automação.
 - **Alertas inteligentes** exibidos na lista de escalas e dentro do dialog de edição:
   - 🛑 **Indisponibilidade (Crítico)** — membro foi escalado em um **dia (data)** onde registrou indisponibilidade pontual ou recorrente (ex: "toda quarta"), ignorando restrições de horas ou qual tipo de culto está sendo escalado.

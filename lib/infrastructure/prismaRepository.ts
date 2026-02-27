@@ -3,6 +3,7 @@ import {
   IScaleRepository,
   IScaleTemplateRepository,
   IUnavailabilityRepository,
+  IRecurringUnavailabilityRepository,
 } from "@/lib/domain/interfaces";
 import {
   Member,
@@ -48,6 +49,7 @@ export class PrismaMemberRepository implements IMemberRepository {
     const members = await prisma.member.findMany({
       include: {
         unavailabilities: true,
+        recurringUnavailabilities: true,
       },
     });
     return members.map((m) => ({
@@ -59,6 +61,11 @@ export class PrismaMemberRepository implements IMemberRepository {
         start: u.start.toISOString(),
         end: u.end.toISOString(),
       })),
+      recurringUnavailabilities: m.recurringUnavailabilities.map((ru) => ({
+        id: ru.id,
+        memberId: ru.memberId,
+        dayOfWeek: ru.dayOfWeek,
+      })),
     }));
   }
 
@@ -67,6 +74,7 @@ export class PrismaMemberRepository implements IMemberRepository {
       where: { id },
       include: {
         unavailabilities: true,
+        recurringUnavailabilities: true,
       },
     });
     if (!member) return null;
@@ -79,6 +87,11 @@ export class PrismaMemberRepository implements IMemberRepository {
         start: u.start.toISOString(),
         end: u.end.toISOString(),
       })),
+      recurringUnavailabilities: member.recurringUnavailabilities.map((ru) => ({
+        id: ru.id,
+        memberId: ru.memberId,
+        dayOfWeek: ru.dayOfWeek,
+      })),
     };
   }
 
@@ -90,12 +103,14 @@ export class PrismaMemberRepository implements IMemberRepository {
       },
       include: {
         unavailabilities: true,
+        recurringUnavailabilities: true,
       },
     });
     return {
       ...newMember,
       instruments: newMember.instruments as Instrument[],
       unavailabilities: [],
+      recurringUnavailabilities: [],
     };
   }
 
@@ -110,6 +125,7 @@ export class PrismaMemberRepository implements IMemberRepository {
       },
       include: {
         unavailabilities: true,
+        recurringUnavailabilities: true,
       },
     });
     return {
@@ -121,6 +137,13 @@ export class PrismaMemberRepository implements IMemberRepository {
         start: u.start.toISOString(),
         end: u.end.toISOString(),
       })),
+      recurringUnavailabilities: updatedMember.recurringUnavailabilities.map(
+        (ru) => ({
+          id: ru.id,
+          memberId: ru.memberId,
+          dayOfWeek: ru.dayOfWeek,
+        }),
+      ),
     };
   }
 
@@ -148,6 +171,26 @@ export class PrismaUnavailabilityRepository implements IUnavailabilityRepository
 
   async delete(id: string): Promise<void> {
     await prisma.memberUnavailability.delete({
+      where: { id },
+    });
+  }
+}
+
+export class PrismaRecurringUnavailabilityRepository implements IRecurringUnavailabilityRepository {
+  async create(unavailability: {
+    memberId: string;
+    dayOfWeek: number;
+  }): Promise<void> {
+    await prisma.recurringUnavailability.create({
+      data: {
+        memberId: unavailability.memberId,
+        dayOfWeek: unavailability.dayOfWeek,
+      },
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await prisma.recurringUnavailability.delete({
       where: { id },
     });
   }

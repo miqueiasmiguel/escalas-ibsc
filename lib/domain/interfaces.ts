@@ -31,3 +31,11 @@ export interface IUnavailabilityRepository {
   }): Promise<void>;
   delete(id: string): Promise<void>;
 }
+
+export interface IRecurringUnavailabilityRepository {
+  create(unavailability: {
+    memberId: string;
+    dayOfWeek: number;
+  }): Promise<void>;
+  delete(id: string): Promise<void>;
+}

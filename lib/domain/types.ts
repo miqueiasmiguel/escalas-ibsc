@@ -15,11 +15,18 @@ export interface MemberUnavailability {
   end: string; // ISO datetime
 }
 
+export interface RecurringUnavailability {
+  id: string;
+  memberId: string;
+  dayOfWeek: number; // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+}
+
 export interface Member {
   id: string;
   name: string;
-  instruments: Instrument[];
+  instruments: Instrument[]; // Instrumentos que o membro toca
   unavailabilities?: MemberUnavailability[];
+  recurringUnavailabilities?: RecurringUnavailability[];
 }
 
 export interface ScaleMember {

@@ -22,6 +22,8 @@ import {
   updateMember as apiUpdateMember,
   addUnavailability,
   deleteUnavailability,
+  addRecurringUnavailability,
+  deleteRecurringUnavailability,
 } from "@/lib/actions/members";
 import {
   getScales,
@@ -165,6 +167,7 @@ export default function AdminDashboard() {
     useState<Member | null>(null);
   const [newUnavailStart, setNewUnavailStart] = useState("");
   const [newUnavailEnd, setNewUnavailEnd] = useState("");
+  const [newRecurringDay, setNewRecurringDay] = useState("0");
 
   React.useEffect(() => {
     if (mounted) {
@@ -274,6 +277,30 @@ export default function AdminDashboard() {
       await fetchAndUpdateMember();
     } catch (error) {
       console.error("Failed to delete unavailability:", error);
+    }
+  };
+
+  const saveRecurringUnavailability = async () => {
+    if (selectedMemberUnavail && newRecurringDay) {
+      try {
+        await addRecurringUnavailability(
+          selectedMemberUnavail.id,
+          parseInt(newRecurringDay),
+        );
+        setNewRecurringDay("0");
+        await fetchAndUpdateMember();
+      } catch (error) {
+        console.error("Failed to save recurring unavailability:", error);
+      }
+    }
+  };
+
+  const handleDeleteRecurringUnavailability = async (id: string) => {
+    try {
+      await deleteRecurringUnavailability(id);
+      await fetchAndUpdateMember();
+    } catch (error) {
+      console.error("Failed to delete recurring unavailability:", error);
     }
   };
 
@@ -901,71 +928,140 @@ export default function AdminDashboard() {
                       escalado.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-                      {selectedMemberUnavail?.unavailabilities?.map((u) => (
-                        <div
-                          key={u.id}
-                          className="flex justify-between items-center bg-muted/50 p-3 rounded-md border"
-                        >
-                          <div className="text-sm space-y-1">
-                            <div>
-                              <span className="font-semibold">Início:</span>{" "}
-                              {format(parseISO(u.start), "dd/MM/yyyy HH:mm", {
-                                locale: ptBR,
-                              })}
-                            </div>
-                            <div>
-                              <span className="font-semibold">Fim:</span>{" "}
-                              {format(parseISO(u.end), "dd/MM/yyyy HH:mm", {
-                                locale: ptBR,
-                              })}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive h-8 w-8 hover:bg-destructive/10"
-                            onClick={() => handleDeleteUnavailability(u.id)}
+
+                  <Tabs defaultValue="specific" className="mt-4">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="specific">
+                        Datas Específicas
+                      </TabsTrigger>
+                      <TabsTrigger value="recurring">Recorrentes</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="specific" className="grid gap-4 py-4">
+                      <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+                        {selectedMemberUnavail?.unavailabilities?.map((u) => (
+                          <div
+                            key={u.id}
+                            className="flex justify-between items-center bg-muted/50 p-3 rounded-md border"
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <div className="text-sm space-y-1">
+                              <div>
+                                <span className="font-semibold">Início:</span>{" "}
+                                {format(parseISO(u.start), "dd/MM/yyyy HH:mm", {
+                                  locale: ptBR,
+                                })}
+                              </div>
+                              <div>
+                                <span className="font-semibold">Fim:</span>{" "}
+                                {format(parseISO(u.end), "dd/MM/yyyy HH:mm", {
+                                  locale: ptBR,
+                                })}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive h-8 w-8 hover:bg-destructive/10"
+                              onClick={() => handleDeleteUnavailability(u.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        {(!selectedMemberUnavail?.unavailabilities ||
+                          selectedMemberUnavail.unavailabilities.length ===
+                            0) && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Nenhuma indisponibilidade cadastrada.
+                          </p>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-2 pt-4 border-t">
+                        <div className="space-y-2">
+                          <Label>Início</Label>
+                          <Input
+                            type="datetime-local"
+                            value={newUnavailStart}
+                            onChange={(e) => setNewUnavailStart(e.target.value)}
+                          />
                         </div>
-                      ))}
-                      {(!selectedMemberUnavail?.unavailabilities ||
-                        selectedMemberUnavail.unavailabilities.length ===
-                          0) && (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Nenhuma indisponibilidade cadastrada.
-                        </p>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 mt-2 pt-4 border-t">
-                      <div className="space-y-2">
-                        <Label>Início</Label>
-                        <Input
-                          type="datetime-local"
-                          value={newUnavailStart}
-                          onChange={(e) => setNewUnavailStart(e.target.value)}
-                        />
+                        <div className="space-y-2">
+                          <Label>Fim</Label>
+                          <Input
+                            type="datetime-local"
+                            value={newUnavailEnd}
+                            onChange={(e) => setNewUnavailEnd(e.target.value)}
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Fim</Label>
-                        <Input
-                          type="datetime-local"
-                          value={newUnavailEnd}
-                          onChange={(e) => setNewUnavailEnd(e.target.value)}
-                        />
+                      <Button
+                        onClick={saveUnavailability}
+                        disabled={!newUnavailStart || !newUnavailEnd}
+                        className="w-full mt-2"
+                      >
+                        Adicionar Indisponibilidade
+                      </Button>
+                    </TabsContent>
+
+                    <TabsContent value="recurring" className="grid gap-4 py-4">
+                      <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+                        {selectedMemberUnavail?.recurringUnavailabilities?.map(
+                          (u) => (
+                            <div
+                              key={u.id}
+                              className="flex justify-between items-center bg-muted/50 p-3 rounded-md border"
+                            >
+                              <div className="text-sm">
+                                <span className="font-semibold">Toda:</span>{" "}
+                                {DAYS_OF_WEEK[u.dayOfWeek]}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive h-8 w-8 hover:bg-destructive/10"
+                                onClick={() =>
+                                  handleDeleteRecurringUnavailability(u.id)
+                                }
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ),
+                        )}
+                        {(!selectedMemberUnavail?.recurringUnavailabilities ||
+                          selectedMemberUnavail.recurringUnavailabilities
+                            .length === 0) && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Nenhuma indisponibilidade recorrente.
+                          </p>
+                        )}
                       </div>
-                    </div>
-                    <Button
-                      onClick={saveUnavailability}
-                      disabled={!newUnavailStart || !newUnavailEnd}
-                      className="w-full mt-2"
-                    >
-                      Adicionar Indisponibilidade
-                    </Button>
-                  </div>
+                      <div className="space-y-2 mt-2 pt-4 border-t">
+                        <Label>Dia da Semana</Label>
+                        <Select
+                          value={newRecurringDay}
+                          onValueChange={setNewRecurringDay}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DAYS_OF_WEEK.map((day, i) => (
+                              <SelectItem key={i} value={i.toString()}>
+                                {day}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        onClick={saveRecurringUnavailability}
+                        className="w-full mt-2"
+                      >
+                        Adicionar Indisponibilidade Recorrente
+                      </Button>
+                    </TabsContent>
+                  </Tabs>
                 </DialogContent>
               </Dialog>
             </div>

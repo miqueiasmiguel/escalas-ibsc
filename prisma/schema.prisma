@@ -14,6 +14,8 @@ model Member {
 
   scaleAssociations ScaleMember[]
   unavailabilities  MemberUnavailability[]
+  recurringUnavailabilities RecurringUnavailability[]
+  requiresConfirmation Boolean              @default(false)
 
   @@map("members")
 }
@@ -26,6 +28,15 @@ model MemberUnavailability {
   end      DateTime
 
   @@map("member_unavailabilities")
+}
+
+model RecurringUnavailability {
+  id        String   @id @default(uuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  dayOfWeek Int // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+
+  @@map("recurring_unavailabilities")
 }
 
 model ScaleEntry {

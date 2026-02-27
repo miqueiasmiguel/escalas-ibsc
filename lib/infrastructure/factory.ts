@@ -3,12 +3,14 @@ import {
   IScaleRepository,
   IScaleTemplateRepository,
   IUnavailabilityRepository,
+  IRecurringUnavailabilityRepository,
 } from "../domain/interfaces";
 import {
   PrismaMemberRepository,
   PrismaScaleRepository,
   PrismaScaleTemplateRepository,
   PrismaUnavailabilityRepository,
+  PrismaRecurringUnavailabilityRepository,
 } from "./prismaRepository";
 
 class RepositoryFactory {
@@ -16,6 +18,8 @@ class RepositoryFactory {
   private scaleRepo: IScaleRepository | null = null;
   private templateRepo: IScaleTemplateRepository | null = null;
   private unavailabilityRepo: IUnavailabilityRepository | null = null;
+  private recurringUnavailabilityRepo: IRecurringUnavailabilityRepository | null =
+    null;
 
   getMemberRepository(): IMemberRepository {
     if (!this.memberRepo) {
@@ -29,6 +33,14 @@ class RepositoryFactory {
       this.unavailabilityRepo = new PrismaUnavailabilityRepository();
     }
     return this.unavailabilityRepo;
+  }
+
+  getRecurringUnavailabilityRepository(): IRecurringUnavailabilityRepository {
+    if (!this.recurringUnavailabilityRepo) {
+      this.recurringUnavailabilityRepo =
+        new PrismaRecurringUnavailabilityRepository();
+    }
+    return this.recurringUnavailabilityRepo;
   }
 
   getScaleRepository(): IScaleRepository {

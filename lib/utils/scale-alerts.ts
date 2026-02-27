@@ -116,6 +116,21 @@ function checkUnavailability(
         break;
       }
     }
+
+    if (fullMember.recurringUnavailabilities) {
+      const scaleDayOfWeek = scaleStart.getDay(); // 0-6 (Sunday-Saturday)
+      for (const ru of fullMember.recurringUnavailabilities) {
+        if (ru.dayOfWeek === scaleDayOfWeek) {
+          alerts.push({
+            id: `recurring-unav-${sm.member.id}-${ru.id}`,
+            severity: "critical",
+            memberId: sm.member.id,
+            message: `${sm.member.name} cadastrou indisponibilidade recorrente para este dia da semana.`,
+          });
+          break; // One alert per member is enough
+        }
+      }
+    }
   }
 
   return alerts;

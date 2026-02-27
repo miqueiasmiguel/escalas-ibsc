@@ -51,3 +51,17 @@ export async function deleteUnavailability(id: string): Promise<void> {
   await repo.delete(id);
   revalidatePath("/admin");
 }
+export async function addRecurringUnavailability(
+  memberId: string,
+  dayOfWeek: number,
+): Promise<void> {
+  const repo = repositoryFactory.getRecurringUnavailabilityRepository();
+  await repo.create({ memberId, dayOfWeek });
+  revalidatePath("/admin");
+}
+
+export async function deleteRecurringUnavailability(id: string): Promise<void> {
+  const repo = repositoryFactory.getRecurringUnavailabilityRepository();
+  await repo.delete(id);
+  revalidatePath("/admin");
+}

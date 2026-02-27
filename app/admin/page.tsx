@@ -81,6 +81,7 @@ import {
   ScaleAlertPanel,
 } from "@/components/scale-alert-badge";
 import { getInstrumentIcon } from "@/lib/utils/instruments";
+import { MemberScaleCounter } from "@/components/member-scale-counter";
 
 const INSTRUMENTS: Instrument[] = [
   "Voz",
@@ -161,6 +162,9 @@ export default function AdminDashboard() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [filterMonth, setFilterMonth] = useState("");
+  const [highlightedMemberId, setHighlightedMemberId] = useState<string | null>(
+    null,
+  );
 
   const [isUnavailDialogOpen, setIsUnavailDialogOpen] = useState(false);
   const [selectedMemberUnavail, setSelectedMemberUnavail] =
@@ -171,9 +175,14 @@ export default function AdminDashboard() {
 
   React.useEffect(() => {
     if (mounted) {
-      setFilterMonth(format(new Date(), "yyyy-MM"));
+      const currentMonth = format(new Date(), "yyyy-MM");
+      setFilterMonth(currentMonth);
     }
   }, [mounted]);
+
+  React.useEffect(() => {
+    setHighlightedMemberId(null);
+  }, [filterMonth]);
 
   const generationMonths = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
@@ -697,6 +706,15 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {activeTab === "scales" && (
+              <MemberScaleCounter
+                scales={filteredScales}
+                members={members}
+                selectedMemberId={highlightedMemberId}
+                onMemberClick={setHighlightedMemberId}
+              />
+            )}
+
             <div className="grid gap-4">
               {filteredScales.map((scale) => {
                 const alerts = analyzeScale(scale, scales, members);
@@ -706,8 +724,21 @@ export default function AdminDashboard() {
                 const warningCount = alerts.filter(
                   (a) => a.severity === "warning",
                 ).length;
+                const isHighlighted =
+                  highlightedMemberId &&
+                  scale.members.some(
+                    (sm) => sm.member?.id === highlightedMemberId,
+                  );
+
                 return (
-                  <Card key={scale.id}>
+                  <Card
+                    key={scale.id}
+                    className={cn(
+                      "transition-all duration-300",
+                      isHighlighted &&
+                        "ring-2 ring-primary ring-offset-2 scale-[1.01] shadow-lg",
+                    )}
+                  >
                     <CardContent className="pt-6">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-4">

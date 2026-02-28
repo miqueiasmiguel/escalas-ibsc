@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { format, parseISO, addMonths } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   Users,
@@ -103,6 +103,23 @@ const DAYS_OF_WEEK = [
   "Sábado",
 ];
 
+const MONTHS = [
+  { value: "01", label: "Janeiro" },
+  { value: "02", label: "Fevereiro" },
+  { value: "03", label: "Março" },
+  { value: "04", label: "Abril" },
+  { value: "05", label: "Maio" },
+  { value: "06", label: "Junho" },
+  { value: "07", label: "Julho" },
+  { value: "08", label: "Agosto" },
+  { value: "09", label: "Setembro" },
+  { value: "10", label: "Outubro" },
+  { value: "11", label: "Novembro" },
+  { value: "12", label: "Dezembro" },
+];
+
+const YEARS = ["2024", "2025", "2026", "2027", "2028", "2029", "2030"];
+
 export default function AdminDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [scales, setScales] = useState<ScaleEntry[]>([]);
@@ -161,7 +178,8 @@ export default function AdminDashboard() {
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [filterMonth, setFilterMonth] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const [highlightedMemberId, setHighlightedMemberId] = useState<string | null>(
     null,
   );
@@ -175,28 +193,24 @@ export default function AdminDashboard() {
 
   React.useEffect(() => {
     if (mounted) {
-      const currentMonth = format(new Date(), "yyyy-MM");
-      setFilterMonth(currentMonth);
+      const now = new Date();
+      setSelectedMonth(format(now, "01")); // Forçando "01" como exemplo, mas deveria ser o atual
+      // Correção: format(now, "MM")
+      setSelectedMonth(format(now, "MM"));
+      setSelectedYear(format(now, "yyyy"));
     }
   }, [mounted]);
 
   React.useEffect(() => {
     setHighlightedMemberId(null);
-  }, [filterMonth]);
-
-  const generationMonths = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const d = addMonths(new Date(), i);
-      return {
-        value: format(d, "yyyy-MM"),
-        label: format(d, "MMMM 'de' yyyy", { locale: ptBR }),
-      };
-    });
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
   const filteredScales = useMemo(() => {
-    return scales.filter((s) => s.date.startsWith(filterMonth));
-  }, [scales, filterMonth]);
+    const filterPrefix = `${selectedYear}-${selectedMonth}`;
+    return scales
+      .filter((s) => s.date.startsWith(filterPrefix))
+      .sort((a, b) => a.date.localeCompare(b.date)); // Ordem Crescente (ASC)
+  }, [scales, selectedMonth, selectedYear]);
 
   const scaleAlerts = useMemo(
     () => analyzeScale(editingScale, scales, members),
@@ -380,7 +394,8 @@ export default function AdminDashboard() {
   const generateMonthScales = async () => {
     try {
       setIsGenerating(true);
-      await apiGenerateMonthScales(filterMonth);
+      const filterPrefix = `${selectedYear}-${selectedMonth}`;
+      await apiGenerateMonthScales(filterPrefix);
       await fetchData();
     } catch (error) {
       console.error("Failed to generate scales:", error);
@@ -447,16 +462,29 @@ export default function AdminDashboard() {
 
           <TabsContent value="scales" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Próximas Escalas</h2>
+              <h2 className="text-xl font-semibold">Gestão de Escalas</h2>
               <div className="flex items-center gap-2">
-                <Select value={filterMonth} onValueChange={setFilterMonth}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Selecione o mês" />
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Mês" />
                   </SelectTrigger>
                   <SelectContent>
-                    {generationMonths.map((m) => (
+                    {MONTHS.map((m) => (
                       <SelectItem key={m.value} value={m.value}>
-                        <span className="capitalize">{m.label}</span>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-[110px]">
+                    <SelectValue placeholder="Ano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YEARS.map((y) => (
+                      <SelectItem key={y} value={y}>
+                        {y}
                       </SelectItem>
                     ))}
                   </SelectContent>
